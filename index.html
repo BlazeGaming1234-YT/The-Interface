@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>The Interface — DOORS Challenge Tracker</title>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <h1 class="glitch-line" data-text="THE INTERFACE">THE INTERFACE</h1>
+        <p id="glitch-msg" class="glitch-line" data-text="-=Hello, vessel...=-">-=Hello, vessel...=-</p>
+        <!-- SCREEN 1: SETUP (choose floors and rules) -->
+        <div id="setup">
+            <h2>Presets</h2>
+            <div id="preset-buttons"></div>
+
+            <!-- Center: max rank preview + start button -->
+            <div id="center">
+                <div id="preview"></div>
+                <button id="start-btn">Start Run</button>
+            </div>
+
+            <!-- Bottom: floors on the left, rules on the right -->
+            <div id="bottom-row">
+                <div class="panel"><h2>Floors</h2><div id="floor-list" class="grid"></div></div>
+                <div class="panel"><h2>Rules</h2><div id="rule-list" class="grid"></div></div>
+            </div>
+        </div>
+        <!-- SCREEN 2: RUN (stopwatch, floor buttons, live rank) -->
+        <div id="run" class="hidden">
+            <div id="timer">00:00:00.000</div>
+            <div id="active-rules"></div>
+            <div id="floor-buttons"></div>
+            <div id="live-rank">F</div>
+            <div id="live-score">0 pts</div>
+            <div id="key-buttons"></div>
+            <button id="end-btn">End Run Early</button>
+        </div>
+
+        <!-- SCREEN 3: FINAL (shown when the run ends) -->
+        <div id="final" class="hidden">
+            <h2>Run Complete</h2>
+            <div id="final-rank">F</div>
+            <div id="final-info"></div>
+            <button id="back-btn">Back to Setup</button>
+        </div>
+        <!-- Credits at bottom -->
+        <footer>
+            <p class="glitch-line" data-text="-=DISCLAIMER: THIS IS A FAN PROJECT, NOT AFFILIATED WITH ROBLOX, LSPLASH, OR THE DOORS DEVELOPMENT TEAM=-">-=DISCLAIMER: THIS IS A FAN PROJECT, NOT AFFILIATED WITH ROBLOX, LSPLASH, OR THE DOORS DEVELOPMENT TEAM=-</p>
+            <p class="glitch-line" data-text="-=Made by TheFirebornKaiser=-">-=Made by TheFirebornKaiser=-</p>
+            <p class="glitch-line" data-text="-=Made with small assistance for css from claude.ai=-">-=Made with small assistance for css from claude.ai=-</p>
+        </footer>
+        <!-- How to Play: button pinned bototm-left + popup -->
+         <button id="help-btn">How to Play?</button>
+
+         <div id="help" class="hidden">
+            <div id="help-box">
+                <h2>How to Play</h2>
+                <ol>
+                    <li><b>Pick your floors.</b> Click a preset to select a set of floors, or click individual floors to turn them on and off.</li>
+                    <li><b>Pick your rules (optional).</b> No rule is required, but every rule you follow adds bonus points, so more rules means a higher possible rank. No Modifiers locks on automatically if you include a subfloor, since mods can't be used there. Rules work on the honor system: only tick the ones you will actually follow.</li>
+                    <li><b>Check the preview.</b> The middle of the screen shows the best rank you can reach with your settings, and your last run with the same settings if you have one.</li>
+                    <li><b>Press Start Run.</b> The stopwatch begins, and floors and rules are locked for the run.</li>
+                    <li><b>During the run,</b> click a floor's button when you beat it. Click a key icon when you collect that floor's key item (hover over an icon to see its name). Click again to undo a misclick. Your rank and score update live in the center.</li>
+                    <li><b>Collect a floor's key item before checking off the last floor,</b> because checking off the final floor ends the run.</li>
+                    <li><b>Finish.</b> The run ends automatically when every floor is checked off. You can also press End Run Early if you die permanently or get interrupted. Your final rank is shown and saved as the last run for those exact settings.</li>
+                </ol>
+                <p><b>Rank minimums:</b></p>
+                <p id="help-ranks"></p>
+                <button id="help-close">Close</button>
+            </div>
+         </div>
+        <script src="app.js"></script>
+    </body>
+</html>
