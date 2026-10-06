@@ -110,7 +110,7 @@ function makeIcon(imgPath, emoji) {
     img.className = "icon";
     img.addEventListener("error", () => { // "error" fires when the image file is missing
         const span = document.createElement("span");
-        span.classname = "icon";
+        span.className = "icon";
         span.textContent = emoji;
         img.replaceWith(span); // swap the broken image for the emoji
     });
@@ -183,7 +183,7 @@ function refreshSetup() {
     // Show the last run with these exact settings (if there is one).
     const last = loadRuns()[settingsKey(floors, rules)];
     $("preview").innerHTML = last
-    ? "Last run with these settings: <b>" + last.rank + "</b> - " + fmtPct(last.percent) + " (" + last.score.toLocaleString() + "pts, " + last.time + ")" : "No rpevious run with these settings.";
+    ? "Last run with these settings: <b>" + last.rank + "</b> - " + fmtPct(last.percent) + " (" + last.score.toLocaleString() + " pts, " + last.time + ")" : "No previous run with these settings.";
 }
 
 $("start-btn").addEventListener("click", startRun);
@@ -227,7 +227,7 @@ function startRun() {
             if (run.done.has(i)) run.done.delete(i); else run.done.add(i);
             floorBtn.classList.toggle("done");
             updateLive();
-            if (run.done.size === run.floors.length) finishRun(false); // all floors checked = auto endd
+            if (run.done.size === run.floors.length) finishRun(false); // all floors checked = auto end
         });
         $("floor-buttons").appendChild(floorBtn);
     });
@@ -284,6 +284,11 @@ function updateLive() {
   $("live-rank").textContent = rank;
   $("live-score").textContent = points.toLocaleString() + " pts (" + fmtPct(pct) + ")";
 }
+
+//End Run Early: ask first, then finish the run without the rule bonus.
+$("end-btn").addEventListener("click", () => {
+    if (confirm("End the run now? Your score so far will be saved.")) finishRun(true);
+});
 
 // --------------- 5. FINAL SCREEN -------------
 
@@ -394,7 +399,7 @@ const rankIndex = letter => RANKS.findIndex(r => r.letter === letter);
 // Plays a quick series of square-wave beeps, one note every 0.12 seconds.
 function beeps(freqs) {
     try {
-        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudiocontext)();
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
         freqs.forEach((f, i) => {
             const osc = audioCtx.createOscillator(); // Makes the tone
             const gain = audioCtx.createGain(); // Controls the volume
