@@ -34,8 +34,9 @@ const PRESETS = {
     doorsverse: {name: "The Doorsverse", floors: [0, 1, 2, 3, 4, 5], icon: "🌌", img: "icons/preset-doorsverse.png"},
     hotel: {name: "Hotel", floors: [0, 1, 3], icon: "🏨", img: "icons/preset-hotel.png"}, // Hotel + Backdoor + Outdoors
     mines: {name: "Mines", floors: [4, 5], icon: "⛏️", img: "icons/preset-mines.png"}, // Mines + Stairwell
-    moonlit: {name: "Moonlit", floors: [1, 4], icon: "🌙", img: "icons/preset-moonlit.png"}, // main floors only
-    subfloors: {name: "Subfloor Sprint", floors: [0, 2, 3, 5], icon: "🏃", img: "icons/preset-starlit.png"} // all four subfloors, requires exiting game after each
+    moonlit: {name: "Moonlit", floors: [1, 4], icon: "🌙", img: "icons/preset-moonlit.png"}, // Main floors only
+    subfloors: {name: "Starlit", floors: [0, 2, 3, 5], icon: "🏃", img: "icons/preset-starlit.png"}, // All four subfloors, requires exiting game after each
+    hideless: {name: "No Hiding", floors: [1, 2, 3, 4], icon: "🫣", img: "icons/preset-hideless.png"} // No Hiding Challenge
 };
     
 // Ranks from lowest. A score earns the highest rank whos min it reaches.
