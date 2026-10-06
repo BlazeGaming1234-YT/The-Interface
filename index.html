@@ -33,7 +33,9 @@
             <div id="floor-buttons"></div>
             <div id="live-rank">F</div>
             <div id="live-score">0 pts</div>
+            <div id="rule-note"></div>
             <div id="key-buttons"></div>
+            <button id="pause-btn">Pause</button>
             <button id="end-btn">End Run Early</button>
         </div>
 
@@ -48,6 +50,7 @@
         <footer>
             <p class="glitch-line" data-text="-=DISCLAIMER: THIS IS A FAN PROJECT, NOT AFFILIATED WITH ROBLOX, LSPLASH, OR THE DOORS DEVELOPMENT TEAM=-">-=DISCLAIMER: THIS IS A FAN PROJECT, NOT AFFILIATED WITH ROBLOX, LSPLASH, OR THE DOORS DEVELOPMENT TEAM=-</p>
             <p class="glitch-line" data-text="-=Made by TheFirebornKaiser=-">-=Made by TheFirebornKaiser=-</p>
+            <p class="glitch-line" data-text="-=SOUND EFFECTS AND ICONS ARE MADE BY LSPLASH AND THE DOORS DEVS, THE END RUN MUSIC IS MADE BY NICOPATTY I CANNOT TAKE ANY CREDIT FOR THEM=-">-=SOUND EFFECTS AND ICONS ARE MADE BY LSPLASH AND THE DOORS DEVS, THE END RUN MUSIC IS MADE BY NICOPATTY I CANNOT TAKE ANY CREDIT FOR THEM=-</p>
             <p class="glitch-line" data-text="-=Made with small assistance for css from claude.ai=-">-=Made with small assistance for css from claude.ai=-</p>
         </footer>
         <!-- How to Play: button pinned bototm-left + popup -->
@@ -63,13 +66,15 @@
                     <li><b>Press Start Run.</b> The stopwatch begins, and floors and rules are locked for the run.</li>
                     <li><b>During the run,</b> click a floor's button when you beat it. Click a key icon when you collect that floor's key item (hover over an icon to see its name). Click again to undo a misclick. Your rank and score update live in the center.</li>
                     <li><b>Collect a floor's key item before checking off the last floor,</b> because checking off the final floor ends the run.</li>
-                    <li><b>Finish.</b> The run ends automatically when every floor is checked off. You can also press End Run Early if you die permanently or get interrupted. Your final rank is shown and saved as the last run for those exact settings.</li>
+                    <li><b>Need a break?</b> Press Pause to freeze the stopwatch. The floor and key buttons are locked until you press Resume.</li>
+                    <li><b>Finish.</b> The run ends automatically when every floor is checked off, and your rule bonus is added at that moment. Pressing End Run Early (if you die permanently or get interrupted) saves your run without the rule bonus. Your rank is a percentage of the maximum score, and it's saved as the last run for those exact settings.</li>
                 </ol>
-                <p><b>Rank minimums:</b></p>
+                <p><b>Rank minimums (percent of the maximum score):</b></p>
                 <p id="help-ranks"></p>
                 <button id="help-close">Close</button>
             </div>
          </div>
+        <button id="mute-btn">Sound: On</button>
         <script src="app.js"></script>
     </body>
 </html>

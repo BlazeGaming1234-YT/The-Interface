@@ -86,3 +86,10 @@ footer .glitch-line:nth-child(3)::before, footer .glitch-line:nth-child(3)::afte
 
 /* Title look (the glitch effect itself comes from .glitch-line) */
 h1.glitch-line {letter-spacing: 0.2em; color: #b44dff; margin: 0.67em 0;}
+/* Pause */
+#run.paused #floor-buttons, #run.paused #key-buttons {opacity: 0.35; pointer-events: none;} /* Locked while paused */
+#run.paused #timer {animation: pause-blink 1s steps(1) infinite;}
+@keyframes pause-blink {50% {opacity: 0.2;}}
+#rule-note {font-size: 13px; color: #8a6fb0;}
+/* Mute button, bottom-right */
+#mute-btn {position: fixed; right: 12px; bottom: 12px; background: #0d0914; z-index: 5;}

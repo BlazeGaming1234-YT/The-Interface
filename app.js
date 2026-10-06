@@ -9,10 +9,10 @@
 // The ORDER matters: presets below refer to floors by position (0 = first).
 const FLOORS = [
     {name: "The Backdoor", type: "sub", key: "Bottle of Starlight", icon: "🚪", img: "icons/backdoor.png", keyIcon: "🔑", keyImg: "icons/bottle.png"}, // 0
-    {name: "The Hotel", type: "main", key: "Crucifix", icon: "🏨", img: "icons/preset-hotel.png", keyIcon: "🔑", keyImg: "icons/crucifix.png"}, // 1
+    {name: "The Hotel", type: "main", key: "Crucifix", icon: "🏨", img: "icons/hotel.png", keyIcon: "🔑", keyImg: "icons/crucifix.png"}, // 1
     {name: "The Archives", type: "sub", key: "Briefcase", icon: "🗄️", img: "icons/archives.png", keyIcon: "🔑", keyImg: "icons/briefcase.png"}, // 2
     {name: "The Outdoors", type: "sub", key: "Lotus Flower", icon: "🌲", img: "icons/outdoors.png", keyIcon: "🔑", keyImg: "icons/nolot.png"}, // 3
-    {name: "The Mines", type: "main", key: "Bulklight", icon: "⛏️", img: "icons/preset-mines.png", keyIcon: "🔑", keyImg: "icons/bulklight.png"}, // 4
+    {name: "The Mines", type: "main", key: "Bulklight", icon: "⛏️", img: "icons/mines.png", keyIcon: "🔑", keyImg: "icons/bulklight.png"}, // 4
     {name: "The Stairwell", type: "sub", key: "Scanner", icon: "🪜", img: "icons/stairwell.png", keyIcon: "🔑", keyImg: "icons/scanner.png"} // 5
 ];
 
@@ -41,10 +41,10 @@ const PRESETS = {
     
 // Ranks from lowest. A score earns the highest rank whos min it reaches.
 const RANKS = [
-    {letter: "F", min : 0}, {letter: "D", min: 4000},
-    {letter: "C", min: 8000}, {letter: "B", min: 12000},
-    {letter: "A", min: 17000}, {letter: "S", min: 18400},
-    {letter: "P", min: 20600}, {letter: "P+", min: 24000}
+    {letter: "F", min : 0}, {letter: "D", min: 16.67},
+    {letter: "C", min: 33.33}, {letter: "B", min: 50},
+    {letter: "A", min: 70.83}, {letter: "S", min: 76.67},
+    {letter: "P", min: 85.83}, {letter: "P+", min: 100}
 ];
 
 // ------------ 2. HELPERS ---------------
@@ -60,15 +60,29 @@ function rankFor(score) {
     return result;
 }
 
-// Total score. done = set of finished floor positions, keys = Set of Floors whose
-// key item was collected, rules = array of active rule ids.
-function computeScore(done, keys, rules) {
+// Points earned. Rule bonuses are only added when success is true
+// (a run where every floor was cleared).
+function computeScore(done, keys, rules, success) {
     let score = 0;
     done.forEach(i => score += POINTS[FLOORS[i].type]);
     keys.forEach(() => score += POINTS.key);
-    rules.forEach(id => score += RULES.find(r => r.id === id).bonus);
+    if (success) rules.forEach(id => score += RULES.find(r => r.id === id).bonus);
     return score;
 }
+
+// The most points possible for these floors: every floor + every key + EVERY rule's bonus.
+function maxPoints(floors) {
+    let total = 0;
+    floors.forEach(i => total += POINTS[FLOORS[i].type] + POINTS.key);
+    RULES.forEach(r => total += r.bonus);
+    return total;
+}
+
+// Points -> percentage of the maximum (0-100).
+function toPercent(points, floors) {return points / maxPoints(floors) * 100;}
+
+// Percentage -> text like "92.4%", rounded DOWN so 99.96 never shows as "100.0%".
+function fmtPct(pct) {return (Math.floor(pct *10) / 10).toFixed(1) + "%";}
 
 // Milliseconds -> "HH:MM:SS.mmm"
 function fmtTime(ms) {
@@ -80,13 +94,13 @@ function fmtTime(ms) {
 // The key looks like "0,1,3|norev, nomod" (floors | rules)
 function settingsKey(floors, rules) { return floors.join(",") + "|" + rules.join(",");}
 function loadRuns() {
-    try { return JSON.parse(localStorage.getItem("InterfaceRuns") || "{}");}
+    try { return JSON.parse(localStorage.getItem("InterfaceRunsV2") || "{}");}
     catch (e) {return {};} // if storage is blocked, act as if empty
 }
 function saveRun(key, data) {
     const all = loadRuns();
     all[key] = data; //overwrites the previous run with the same settings
-    try {localStorage.setItem("InterfaceRuns", JSON.stringify(all));} catch (e) {}
+    try {localStorage.setItem("InterfaceRunsV2", JSON.stringify(all));} catch (e) {}
 }
 
 // Returns an icon: the image file if it exists, otherwise the emoji stand-in.
@@ -166,10 +180,10 @@ function refreshSetup() {
     $("start-btn").disabled = floors.length === 0;
     if (floors.length === 0) {$("preview").textContent = "Pick at least one floor."; return;}
 
-    // Best possible score = every floor done + every key collected with these rules.
-    const max = computeScore(new Set(floors), new Set(floors), rules);
+    // Show the last run with these exact settings (if there is one).
     const last = loadRuns()[settingsKey(floors, rules)];
-        $("preview").innerHTML = "Max possible rank: <b>" + rankFor(max) + "</b> (" + max.toLocaleString() + " pts)<br>" + (last ? "Last run with these settings: <b>" + last.rank + "</b> - " + last.score.toLocaleString() + " pts (" + last.time + ")" : "No previous run with these settings.");
+    $("preview").innerHTML = last
+    ? "Last run with these settings: <b>" + last.rank + "</b> - " + fmtPct(last.percent) + " (" + last.score.toLocaleString() + "pts, " + last.time + ")" : "No rpevious run with these settings.";
 }
 
 $("start-btn").addEventListener("click", startRun);
@@ -181,7 +195,12 @@ let run = null; // holds the current run's data while one is active
 function startRun() {
     const {floors, rules} = getSelection();
     newGlitchMessage();
-    run = {floors,rules, done: new Set(), keys: new Set(), start: Date.now(), timer: null};
+    run = {floors, rules, done: new Set(), keys: new Set(), start: Date.now(), pausedTotal: 0, pauseStart: null, timer: null};
+    run.lastRank = null; // No rank change sound until the first rank is set
+    $("pause-btn").textContent = "Pause"; // Reset the pause button and look
+    $("run").classList.remove("paused");
+    const bonus = RULES.filter(r => rules.includes(r.id)).reduce((sum, r) => sum + r.bonus, 0);
+    $("rule-note").textContent = "Rule bonus: +" + bonus.toLocaleString() + " pts, awarded only if you clear every floor";
 
     $("setup").classList.add("hidden");
     $("run").classList.remove("hidden");
@@ -227,20 +246,44 @@ function startRun() {
         });
         $("key-buttons").appendChild(keyBtn);
     });
-    run.timer = setInterval(() => {$("timer").textContent = fmtTime(Date.now() - run.start);}, 31);
+    run.timer = setInterval(() => {$("timer").textContent = fmtTime(elapsed());}, 31);
     updateLive();
 }
 
-//Recalculate the live rank and score in the middle of the screen.
-function updateLive() {
-    const score = computeScore(run.done, run.keys, run.rules);
-    $("live-rank").textContent = rankFor(score);
-    $("live-score").textContent = score.toLocaleString() + " pts";
+// Stopwatch time in ms, not counting paused time.
+function elapsed() {
+    const now = run.pauseStart || Date.now(); // While paused, the clock stays at the moment the pause began
+    return now - run.start - run.pausedTotal;
 }
 
-$("end-btn").addEventListener("click", () => {
-    if(confirm("End the run now? Your score so far will be saved.")) finishRun(true);
+$("pause-btn").addEventListener("click", () => {
+    if (run.pauseStart) { // currently paused -> resume
+        run.pausedTotal += Date.now() - run.pauseStart;
+        run.pauseStart = null;
+        $("pause-btn").textContent = "Pause";
+        $("run").classList.remove("paused");
+    } else {
+        run.pauseStart = Date.now();
+        $("pause-btn").textContent = "Resume";
+        $("run").classList.add("paused");
+    }
 });
+
+// Recalculate the live rank and score in the middle of the screen.
+function updateLive() {
+  const points = computeScore(run.done, run.keys, run.rules, false); // rule bonus not counted until the run succeeds
+  const pct = toPercent(points, run.floors);
+  const rank = rankFor(pct);
+
+  // Rank changed since the last update? Play the up or down sound.
+  if (run.lastRank && rank !== run.lastRank) {
+    playSound(rankIndex(rank) > rankIndex(run.lastRank) ? "rankUp" : "rankDown");
+  }
+  run.lastRank = rank;
+
+  $("live-rank").textContent = rank;
+  $("live-score").textContent = points.toLocaleString() + " pts (" + fmtPct(pct) + ")";
+}
 
 // --------------- 5. FINAL SCREEN -------------
 
@@ -248,18 +291,22 @@ $("end-btn").addEventListener("click", () => {
 function finishRun(early) {
     newGlitchMessage();
     clearInterval(run.timer);
-    const time = fmtTime(Date.now() - run.start);
-    const score = computeScore(run.done, run.keys, run.rules);
-    const rank = rankFor(score);
-    saveRun(settingsKey(run.floors, run.rules), {rank, score, time});
+    const time = fmtTime(elapsed());
+    const success = run.done.size === run.floors.length; // Every floor cleared?
+    const score = computeScore(run.done, run.keys, run.rules, success); // Rule bonus only applies if success
+    const percent = toPercent(score, run.floors);
+    const rank = rankFor(percent);
+    saveRun(settingsKey(run.floors, run.rules), {rank, score, percent, time});
 
     $("run").classList.add("hidden");
     $("final").classList.remove("hidden");
     $("final-rank").textContent = rank;
-    $("final-info").innerHTML = score.toLocaleString() + " pts<br>Time: " + time + "<br>" + run.done.size + "/" + run.floors.length + " floors cleared" + (early ? " (ended early)" : "");
+    $("final-info").innerHTML = fmtPct(percent) + " (" + score.toLocaleString() + " pts)<br>" + "Time: " + time + "<br>" + run.done.size + "/" + run.floors.length + " floors cleared" + (success ? "" : " <br>(ended early - rule bonus not awarded)"); 
+    finishAudio = playSound("finish");
 }
 
 $("back-btn").addEventListener("click", () => {
+    if (finishAudio) finishAudio.pause();
     newGlitchMessage();
     $("final").classList.add("hidden");
     $("setup").classList.remove("hidden");
@@ -269,8 +316,7 @@ $("back-btn").addEventListener("click", () => {
 // ----------- 6. HOW TO PLAY POPUP --------------
 
 // Fill in the rank list from the RANKS data, so it never goes out of date.
-$("help-ranks").textContent = RANKS.map(r => r.letter + ": " + r.min.toLocaleString()).join("  |  ");
-
+$("help-ranks").textContent = RANKS.map(r => r.letter + ": " + r.min + "%").join("  |  ");
 const closeHelp = () => $("help").classList.add("hidden");
 $("help-btn").addEventListener("click", () => $("help").classList.remove("hidden"));
 $("help-close").addEventListener("click", closeHelp);
@@ -326,3 +372,57 @@ function newGlitchMessage() {
 }
 
 newGlitchMessage(); // Pick one when the page loads
+
+// -------------- 9. SOUNDS ---------------
+
+// File = optional audio file in a "sounds" folder. tone = built-in beep notes (in Hz),
+// Used whenever the file is missing, so the app is never silent or broken.
+
+const SOUNDS ={
+    rankUp: {file: "sounds/rank-up.mp3", tone: [660, 880]},
+    rankDown: {file: "sounds/rank-down.mp3", tone: [330, 220]},
+    finish: {file: "sounds/finish.ogg", tone: [523, 659, 784, 1047]}
+};
+
+let muted = false;
+let finishAudio = null; // Remembers the finish sounds
+let audioCtx = null; // The browser's built-in sound generator, created on first use.
+
+// Which position a rank letter has in RANKS (higher number = better rank).
+const rankIndex = letter => RANKS.findIndex(r => r.letter === letter);
+
+// Plays a quick series of square-wave beeps, one note every 0.12 seconds.
+function beeps(freqs) {
+    try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudiocontext)();
+        freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator(); // Makes the tone
+            const gain = audioCtx.createGain(); // Controls the volume
+            const t = audioCtx.currentTime + i * 0.12;
+            osc.type = "square";
+            osc.frequency.value = f;
+            gain.gain.setValueAtTime(0.08, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.11); // Fade out
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+        });
+    } catch (e) {} // If sound isn't supported, just stay silent
+}
+
+// Plays a named sound: the audio file if it exists, the beeps if not.
+function playSound(name) {
+    if (muted) return null;
+    const s =  SOUNDS[name];
+    const audio = new Audio(s.file);
+    audio.volume = 0.6;
+    audio.play().catch(() => beeps(s.tone)); // Play() fails when the file is missing
+    return audio;
+}
+
+$("mute-btn").addEventListener("click", () => {
+    muted = !muted;
+    $("mute-btn").textContent = muted ? "Sound: Off": "Sound: On";
+    if (muted && finishAudio) finishAudio.pause();
+});
